@@ -13,90 +13,86 @@ class HomeLayout extends StatefulWidget {
   _HomeLayoutState createState() => _HomeLayoutState();
 }
 
-class _HomeLayoutState extends State<HomeLayout>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabcontroller;
-  static final _kTabs = <Tab>[
-    Tab(
-      icon: Icon(
-        Icons.ac_unit,
-        color: colors.AppColors.AppColor,
-      ),
-      child: Text(
-        'Cá nhân',
-        style: TextStyle(color: colors.AppColors.AppColor, fontSize: 10),
-      ),
-    ),
-    Tab(
-      icon: Icon(
-        Icons.ac_unit,
-        color: colors.AppColors.AppColor,
-      ),
-      child: Text(
-        'Khám phá',
-        style: TextStyle(color: colors.AppColors.AppColor, fontSize: 10),
-      ),
-    ),
-    Tab(
-      icon: Icon(
-        Icons.ac_unit,
-        color: colors.AppColors.AppColor,
-      ),
-      child: Text(
-        '#Zingchart',
-        style: TextStyle(color: colors.AppColors.AppColor, fontSize: 10),
-      ),
-    ),
-    Tab(
-      icon: Icon(
-        Icons.ac_unit,
-        color: colors.AppColors.AppColor,
-      ),
-      child: Text(
-        'Radio',
-        style: TextStyle(color: colors.AppColors.AppColor, fontSize: 10),
-      ),
-    ),
-    Tab(
-      icon: Icon(
-        Icons.ac_unit,
-        color: colors.AppColors.AppColor,
-      ),
-      child: Text(
-        'Theo dỏi',
-        style: TextStyle(color: colors.AppColors.AppColor, fontSize: 10),
-      ),
-    )
-  ];
-
-  static const _kTabPages = <Widget>[
-    IndividualLayout(),
-    DiscoverLayout(),
-    ChartLayout(),
-    RadioLayout(),
-    TrackingLayout()
-  ];
-  @override
-  void initState() {
-    super.initState();
-    _tabcontroller = TabController(length: _kTabPages.length, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabcontroller.dispose();
-    super.dispose();
-  }
-
+class _HomeLayoutState extends State<HomeLayout> {
+  int _currentTabIndex = 1;
   @override
   Widget build(BuildContext context) {
+    final _kTabScreens = <Widget>[
+      const IndividualLayout(),
+      const DiscoverLayout(),
+      const ChartLayout(),
+      const RadioLayout(),
+      const TrackingLayout()
+    ];
+
+    final _kBottomNaviGationBarItems = <BottomNavigationBarItem>[
+      const BottomNavigationBarItem(
+        icon: Icon(
+          Icons.ac_unit,
+        ),
+        title: Text(
+          'Cá nhân',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(
+          Icons.ac_unit,
+        ),
+        title: Text(
+          'Khám phá',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(
+          Icons.ac_unit,
+        ),
+        title: Text(
+          '#Zingchart',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(
+          Icons.ac_unit,
+        ),
+        title: Text(
+          'Radio',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(
+          Icons.ac_unit,
+        ),
+        title: Text(
+          'Theo dỏi',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+      ),
+    ];
+
+    final Widget _bottomNavBar = BottomNavigationBar(
+      items: _kBottomNaviGationBarItems,
+      currentIndex: _currentTabIndex,
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: colors.AppColors.AppColor,
+      unselectedItemColor: colors.AppColors.AppUnSelectColor,
+      onTap: (index) {
+        setState(() {
+          _currentTabIndex = index;
+        });
+      },
+    );
+
     return Scaffold(
       body: Column(
         children: [
-          // Phần TabBarView
+          // Phần Screen của bottomNavigationBar
           Expanded(
-              child:
-                  TabBarView(children: _kTabPages, controller: _tabcontroller)),
+            child: _kTabScreens[_currentTabIndex],
+          ),
           // Phần hiển thị nhạc đang nghe
           Container(
             height: 55,
@@ -141,13 +137,8 @@ class _HomeLayoutState extends State<HomeLayout>
           )
         ],
       ),
-      // Phần BottomBar
-      bottomNavigationBar: Material(
-        child: TabBar(
-          tabs: _kTabs,
-          controller: _tabcontroller,
-        ),
-      ),
+      // Phần bottomNavigationBar
+      bottomNavigationBar: _bottomNavBar,
     );
   }
 }

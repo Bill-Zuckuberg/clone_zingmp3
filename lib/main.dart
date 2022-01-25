@@ -1,4 +1,6 @@
-import 'package:clone_zingmp3/layout/home_layout.dart';
+import 'package:clone_zingmp3/layout/individual_layout.dart';
+import 'package:clone_zingmp3/layout/main_layout.dart';
+import 'package:clone_zingmp3/layout/page/individual_tab_playlist.dart';
 import 'package:flutter/material.dart';
 
 void main() {

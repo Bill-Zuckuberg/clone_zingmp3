@@ -15,6 +15,7 @@ class HomeLayout extends StatefulWidget {
 
 class _HomeLayoutState extends State<HomeLayout> {
   int _currentTabIndex = 1;
+
   @override
   Widget build(BuildContext context) {
     final _kTabScreens = <Widget>[
@@ -73,35 +74,43 @@ class _HomeLayoutState extends State<HomeLayout> {
       ),
     ];
 
-    final Widget _bottomNavBar = BottomNavigationBar(
-      items: _kBottomNaviGationBarItems,
-      currentIndex: _currentTabIndex,
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: colors.AppColors.AppColor,
-      unselectedItemColor: colors.AppColors.AppUnSelectColor,
-      onTap: (index) {
-        setState(() {
-          _currentTabIndex = index;
-        });
-      },
-    );
+    final Widget _bottomNavBar = Container(
+        decoration: const BoxDecoration(
+            border: Border(top: BorderSide(width: 0.5, color: Colors.grey))),
+        child: BottomNavigationBar(
+          items: _kBottomNaviGationBarItems,
+          backgroundColor: colors.AppColors.searchBackground,
+          currentIndex: _currentTabIndex,
+          elevation: 1,
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: colors.AppColors.appColor,
+          unselectedItemColor: colors.AppColors.appUnSelectColor,
+          onTap: (index) {
+            setState(() {
+              _currentTabIndex = index;
+            });
+          },
+        ));
 
     return Scaffold(
+      backgroundColor: Colors.white,
+      extendBodyBehindAppBar: true,
       body: Column(
         children: [
-          // Phần Screen của bottomNavigationBar
+          // Phần Body Tabbar
           Expanded(
             child: _kTabScreens[_currentTabIndex],
           ),
+
           // Phần hiển thị nhạc đang nghe
           Container(
             height: 55,
-            color: Colors.red.withOpacity(0.2),
+            color: colors.AppColors.searchBackground,
             child: Column(
               children: [
                 Container(
                   height: 5,
-                  color: colors.AppColors.AppColor,
+                  color: colors.AppColors.appColor,
                 ),
                 const SizedBox(
                   height: 5,
@@ -113,7 +122,7 @@ class _HomeLayoutState extends State<HomeLayout> {
                       child: CircleAvatar(
                         child: Icon(
                           Icons.access_time,
-                          color: colors.AppColors.AppColor,
+                          color: colors.AppColors.appColor,
                         ),
                       ),
                     ),
@@ -137,6 +146,7 @@ class _HomeLayoutState extends State<HomeLayout> {
           )
         ],
       ),
+
       // Phần bottomNavigationBar
       bottomNavigationBar: _bottomNavBar,
     );

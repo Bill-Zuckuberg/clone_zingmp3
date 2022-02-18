@@ -1,6 +1,7 @@
 import 'package:clone_zingmp3/layout/individual_layout.dart';
 import 'package:clone_zingmp3/layout/main_layout.dart';
 import 'package:clone_zingmp3/layout/page/individual_tab_playlist.dart';
+import 'package:clone_zingmp3/layout/page/splash_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -35,6 +36,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
-    return const HomeLayout();
+    return const SplashScreen();
   }
 }

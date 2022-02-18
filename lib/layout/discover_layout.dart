@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:clone_zingmp3/mics/colors.dart' as colors;
+import 'package:flutter/services.dart';
 
 class DiscoverLayout extends StatefulWidget {
   const DiscoverLayout({Key? key}) : super(key: key);
@@ -15,18 +16,38 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
   int _currentPage = 0;
   final PageController _pageController = PageController(initialPage: 0);
   List _carousel = [];
+  List _listTop100 = [];
+  bool _loadingCaroulsel = true;
+  bool _loadingList = true;
+
+  _loadingJson() async {
+    DefaultAssetBundle.of(context)
+        .loadString("json/dc_caroulsel.json")
+        .then((value) {
+      setState(() {
+        _carousel = json.decode(value);
+        _carousel.isNotEmpty
+            ? _loadingCaroulsel = false
+            : _loadingCaroulsel = true;
+      });
+    });
+
+    DefaultAssetBundle.of(context)
+        .loadString("json/dc_listtop100.json")
+        .then((value) {
+      setState(() {
+        _listTop100 = json.decode(value);
+        _listTop100.isNotEmpty ? _loadingList = false : _loadingList = true;
+      });
+    });
+  }
 
   @override
   void initState() {
     super.initState();
 
-    DefaultAssetBundle.of(context)
-        .loadString("assets/json/dc_caroulsel.json")
-        .then((value) {
-      setState(() {
-        _carousel = json.decode(value);
-        print(_carousel);
-      });
+    setState(() {
+      _loadingJson();
     });
 
     Timer.periodic(const Duration(seconds: 5), (timer) {
@@ -34,11 +55,16 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
         _currentPage++;
       } else {
         _currentPage = 0;
-        _pageController.animateToPage(_currentPage,
-            duration: const Duration(milliseconds: 50), curve: Curves.easeIn);
+        if (_pageController.hasClients) {
+          _pageController.animateToPage(_currentPage,
+              duration: const Duration(milliseconds: 50), curve: Curves.easeIn);
+        }
       }
-      _pageController.animateToPage(_currentPage,
-          duration: const Duration(milliseconds: 300), curve: Curves.easeIn);
+
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(_currentPage,
+            duration: const Duration(milliseconds: 300), curve: Curves.easeIn);
+      }
     });
   }
 
@@ -145,18 +171,22 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                         onTap: () {
                           // Đến link nào đó
                         },
-                        child: Container(
-                          width: double.infinity,
-                          height: double.infinity,
-                          decoration: BoxDecoration(
-                              image: DecorationImage(
-                                  image: AssetImage("assets/images/carousel/" +
-                                      _carousel[index]["img"]),
-                                  fit: BoxFit.cover),
-                              color: Colors.red.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(10)),
-                          child: Center(child: Text(index.toString())),
-                        ),
+                        child: _loadingCaroulsel == false
+                            ? Container(
+                                width: double.infinity,
+                                height: double.infinity,
+                                decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                        image: AssetImage(
+                                            "assets/images/carousel/" +
+                                                _carousel[index]["img"]),
+                                        fit: BoxFit.cover),
+                                    color: Colors.red.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(10)),
+                              )
+                            : const Center(
+                                child: CircularProgressIndicator(),
+                              ),
                       );
                     },
                     itemCount: _carousel.length,
@@ -231,10 +261,12 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
           SliverToBoxAdapter(
             child: Container(
                 height: 180,
-                padding: const EdgeInsets.only(left: 10),
                 child: Column(
                   children: [
                     Row(children: const [
+                      SizedBox(
+                        width: 10,
+                      ),
                       Text(
                         "Gần Đây",
                         style: TextStyle(
@@ -260,7 +292,7 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                                   },
                                   child: Container(
                                     padding: const EdgeInsets.only(
-                                        top: 20, right: 20),
+                                        top: 20, left: 10),
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -289,7 +321,7 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                                   },
                                   child: Container(
                                     padding: const EdgeInsets.only(
-                                        top: 20, right: 20),
+                                        top: 20, left: 10),
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.center,
@@ -318,7 +350,7 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                                   },
                                   child: Container(
                                     padding: const EdgeInsets.only(
-                                        top: 20, right: 20),
+                                        top: 20, left: 20),
                                     width: 95,
                                     height: 95,
                                     child: Column(
@@ -396,94 +428,9 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                       Icon(Icons.arrow_forward_ios)
                     ]),
                     Container(
-                      height: 225,
-                      width: MediaQuery.of(context).size.width,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemBuilder: (context, index) {
-                          return Row(
-                            children: [
-                              if (index % 2 != 0 && index < 6)
-                                GestureDetector(
-                                  onTap: () {
-                                    // print("object" + index.toString());
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.only(
-                                        top: 20, right: 20),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          height: 140,
-                                          width: 140,
-                                          decoration: BoxDecoration(
-                                              color:
-                                                  Colors.red.withOpacity(0.2),
-                                              borderRadius:
-                                                  BorderRadius.circular(5)),
-                                        ),
-                                        const SizedBox(
-                                          height: 10,
-                                        ),
-                                        Text("data"),
-                                        Text("data"),
-                                        Text("data"),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              if (index == 6)
-                                GestureDetector(
-                                  onTap: () {
-                                    // print("object" + index.toString());
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.only(
-                                        top: 20, right: 20),
-                                    width: 110,
-                                    height: 110,
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                            height: 45,
-                                            width: 45,
-                                            margin: const EdgeInsets.only(
-                                                bottom: 10),
-                                            decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                      color: Colors.grey
-                                                          .withOpacity(0.3),
-                                                      offset:
-                                                          const Offset(1, 1),
-                                                      blurRadius: 4,
-                                                      spreadRadius: 1)
-                                                ],
-                                                borderRadius:
-                                                    BorderRadius.circular(45)),
-                                            child: const Icon(
-                                              Icons.arrow_right_alt,
-                                              color: Colors.grey,
-                                              size: 30,
-                                            )),
-                                        const Text("Xem tất cả",
-                                            style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w400,
-                                                color: Colors.grey))
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          );
-                        },
-                        itemCount: 7,
-                      ),
-                    )
+                        height: 225,
+                        width: MediaQuery.of(context).size.width,
+                        child: _buildListCard(_listTop100, true, 5))
                   ],
                 )),
           ),
@@ -508,41 +455,9 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                       Icon(Icons.arrow_forward_ios)
                     ]),
                     Container(
-                      height: 210,
-                      width: MediaQuery.of(context).size.width,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemBuilder: (context, index) {
-                          return GestureDetector(
-                            onTap: () {
-                              // print("object" + index.toString());
-                            },
-                            child: Container(
-                              padding:
-                                  const EdgeInsets.only(top: 20, right: 20),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    height: 140,
-                                    width: 140,
-                                    decoration: BoxDecoration(
-                                        color: Colors.red.withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(5)),
-                                  ),
-                                  const SizedBox(
-                                    height: 10,
-                                  ),
-                                  Text("data"),
-                                  Text("data"),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                        itemCount: 5,
-                      ),
-                    )
+                        height: 210,
+                        width: MediaQuery.of(context).size.width,
+                        child: _buildListCard(_listTop100, false, 5))
                   ],
                 )),
           ),
@@ -567,41 +482,9 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                       Icon(Icons.arrow_forward_ios)
                     ]),
                     Container(
-                      height: 215,
-                      width: MediaQuery.of(context).size.width,
-                      child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemBuilder: (context, index) {
-                            return GestureDetector(
-                              onTap: () {
-                                // print("object" + index.toString());
-                              },
-                              child: Container(
-                                padding:
-                                    const EdgeInsets.only(top: 20, right: 20),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      height: 140,
-                                      width: 140,
-                                      decoration: BoxDecoration(
-                                          color: Colors.red.withOpacity(0.2),
-                                          borderRadius:
-                                              BorderRadius.circular(5)),
-                                    ),
-                                    const SizedBox(
-                                      height: 10,
-                                    ),
-                                    Text("data"),
-                                    Text("data"),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                          itemCount: 5),
-                    )
+                        height: 215,
+                        width: MediaQuery.of(context).size.width,
+                        child: _buildListCard(_listTop100, false, 5))
                   ],
                 )),
           ),
@@ -644,14 +527,35 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.center,
                                       children: [
-                                        Container(
-                                          height: 140,
-                                          width: 140,
-                                          decoration: BoxDecoration(
-                                              color:
-                                                  Colors.red.withOpacity(0.2),
-                                              borderRadius:
-                                                  BorderRadius.circular(140)),
+                                        Stack(
+                                          children: [
+                                            Container(
+                                              height: 140,
+                                              width: 140,
+                                              decoration: BoxDecoration(
+                                                  color: Colors.red
+                                                      .withOpacity(0.2),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          140)),
+                                            ),
+                                            Positioned(
+                                                left: 100,
+                                                top: 100,
+                                                child: Container(
+                                                  height: 40,
+                                                  width: 40,
+                                                  decoration: BoxDecoration(
+                                                      border: Border.all(
+                                                          color: Colors.white,
+                                                          width: 2),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              35),
+                                                      color: Colors.yellow
+                                                          .withOpacity(0.8)),
+                                                ))
+                                          ],
                                         ),
                                         const SizedBox(
                                           height: 15,
@@ -715,8 +619,481 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                   ],
                 )),
           ),
+
+          // Phần mix riêng
+          SliverToBoxAdapter(
+            child: Container(
+                height: 240,
+                margin: const EdgeInsets.only(top: 20),
+                padding: const EdgeInsets.only(left: 10),
+                child: Column(
+                  children: [
+                    Row(children: const [
+                      Text(
+                        "Mix riêng cho bạn",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Icon(Icons.arrow_forward_ios)
+                    ]),
+                    Container(
+                        height: 215,
+                        width: MediaQuery.of(context).size.width,
+                        child: _buildListCard(_listTop100, false, 4))
+                  ],
+                )),
+          ),
+
+          // Phần nhạc mới mỗi ngày
+          SliverToBoxAdapter(
+            child: Container(
+                height: 240,
+                margin: const EdgeInsets.only(top: 20),
+                padding: const EdgeInsets.only(left: 10),
+                child: Column(
+                  children: [
+                    Row(children: const [
+                      Text(
+                        "Nhạc mới mỗi ngày",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Icon(Icons.arrow_forward_ios)
+                    ]),
+                    Container(
+                        height: 215,
+                        width: MediaQuery.of(context).size.width,
+                        child: _buildListCard(_listTop100, false, 5))
+                  ],
+                )),
+          ),
+
+          // Phần Zing Chart
+          SliverToBoxAdapter(
+            child: Container(
+              height: 550,
+              width: double.infinity,
+              padding: const EdgeInsets.only(left: 10, right: 10),
+              decoration: BoxDecoration(
+                  color: colors.AppColors.appColor,
+                  borderRadius: BorderRadius.circular(8)),
+              child: Column(),
+            ),
+          ),
+
+          // Phần Top 100
+          SliverToBoxAdapter(
+            child: Container(
+                height: 250,
+                padding: const EdgeInsets.only(left: 10),
+                margin: const EdgeInsets.only(top: 10),
+                child: Column(
+                  children: [
+                    Row(children: const [
+                      Text(
+                        "Top 100",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Icon(Icons.arrow_forward_ios)
+                    ]),
+                    Container(
+                        height: 225,
+                        width: MediaQuery.of(context).size.width,
+                        child: _buildListCard(_listTop100, true, 5))
+                  ],
+                )),
+          ),
+
+          // Phần Sự kiện
+          SliverToBoxAdapter(
+            child: Container(
+                height: 250,
+                padding: const EdgeInsets.only(left: 10),
+                child: Column(
+                  children: [
+                    Row(children: const [
+                      Text(
+                        "Sự kiện",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Icon(Icons.arrow_forward_ios)
+                    ]),
+                    Container(
+                      height: 225,
+                      width: MediaQuery.of(context).size.width,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (context, index) {
+                          return Row(
+                            children: [
+                              if (index < 6)
+                                GestureDetector(
+                                  onTap: () {
+                                    // print("object" + index.toString());
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.only(
+                                        top: 20, right: 20),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          height: 140,
+                                          width: 260,
+                                          decoration: BoxDecoration(
+                                              color:
+                                                  Colors.red.withOpacity(0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(5)),
+                                        ),
+                                        const SizedBox(
+                                          height: 10,
+                                        ),
+                                        Container(
+                                          height: 45,
+                                          width: 260,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Column(children: const [
+                                                Text("data"),
+                                                Text("data"),
+                                              ]),
+                                              Container(
+                                                child: const Text("Quan tâm"),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              if (index == 6)
+                                GestureDetector(
+                                  onTap: () {
+                                    // print("object" + index.toString());
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.only(
+                                        top: 20, right: 20),
+                                    width: 110,
+                                    height: 110,
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                            height: 45,
+                                            width: 45,
+                                            margin: const EdgeInsets.only(
+                                                bottom: 10),
+                                            decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                      color: Colors.grey
+                                                          .withOpacity(0.3),
+                                                      offset:
+                                                          const Offset(1, 1),
+                                                      blurRadius: 4,
+                                                      spreadRadius: 1)
+                                                ],
+                                                borderRadius:
+                                                    BorderRadius.circular(45)),
+                                            child: const Icon(
+                                              Icons.arrow_right_alt,
+                                              color: Colors.grey,
+                                              size: 30,
+                                            )),
+                                        const Text("Xem tất cả",
+                                            style: TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w400,
+                                                color: Colors.grey))
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
+                        itemCount: 7,
+                      ),
+                    )
+                  ],
+                )),
+          ),
+
+          // Phần EDM
+          SliverToBoxAdapter(
+            child: Container(
+                height: 275,
+                padding: const EdgeInsets.only(left: 10),
+                child: Column(
+                  children: [
+                    Row(children: [
+                      Container(
+                          height: 40,
+                          width: 40,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(5),
+                              color: Colors.red.withOpacity(0.2))),
+                      const SizedBox(
+                        width: 5,
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "Vì bạn quan tâm",
+                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                          ),
+                          Text("EDM",
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold))
+                        ],
+                      )
+                    ]),
+                    Container(
+                        height: 235,
+                        width: MediaQuery.of(context).size.width,
+                        child: _buildListCard(_listTop100, true, 5))
+                  ],
+                )),
+          ),
+
+          // Phần R&B
+          SliverToBoxAdapter(
+            child: Container(
+                height: 275,
+                padding: const EdgeInsets.only(left: 10),
+                child: Column(
+                  children: [
+                    Row(children: [
+                      Container(
+                          height: 40,
+                          width: 40,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(5),
+                              color: Colors.red.withOpacity(0.2))),
+                      const SizedBox(
+                        width: 5,
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "Vì bạn quan tâm",
+                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                          ),
+                          Text("R&B",
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold))
+                        ],
+                      )
+                    ]),
+                    Container(
+                        height: 225,
+                        width: MediaQuery.of(context).size.width,
+                        child: _buildListCard(_listTop100, true, 5))
+                  ],
+                )),
+          ),
+
+          // Phần Mới phát hành
+          SliverToBoxAdapter(
+            child: Container(
+                height: 250,
+                padding: const EdgeInsets.only(left: 10),
+                child: Column(
+                  children: [
+                    Row(children: const [
+                      Text(
+                        "Mới phát hành",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Icon(Icons.arrow_forward_ios)
+                    ]),
+                    _buildListCard(_listTop100, true, 6, subtext: true)
+                  ],
+                )),
+          ),
+
+          // Phần nghệ sĩ yêu thích
+          SliverToBoxAdapter(
+            child: Container(
+                height: 240,
+                margin: const EdgeInsets.only(top: 15, bottom: 15),
+                padding: const EdgeInsets.only(left: 10),
+                child: Column(
+                  children: [
+                    Row(children: const [
+                      Text(
+                        "Nghệ sĩ yêu thích",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Icon(Icons.arrow_forward_ios)
+                    ]),
+                    Container(
+                      height: 215,
+                      width: MediaQuery.of(context).size.width,
+                      child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemBuilder: (context, index) {
+                            return GestureDetector(
+                              onTap: () {
+                                // print("object" + index.toString());
+                              },
+                              child: Container(
+                                padding:
+                                    const EdgeInsets.only(top: 20, right: 20),
+                                child: Container(
+                                  height: 140,
+                                  width: 140,
+                                  decoration: BoxDecoration(
+                                      color: Colors.red.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(5)),
+                                ),
+                              ),
+                            );
+                          },
+                          itemCount: 7),
+                    )
+                  ],
+                )),
+          ),
         ],
       ),
     );
+  }
+
+  Widget _buildListCard(List json, bool seeAll, int count,
+      {bool subtext = false}) {
+    return Container(
+      height: 225,
+      width: MediaQuery.of(context).size.width,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (context, index) {
+          return Row(
+            children: [
+              if (index < count)
+                GestureDetector(
+                  onTap: () {
+                    // print("object" + index.toString());
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.only(top: 20, right: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 140,
+                          width: 140,
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: _loadingList == false
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    json[index]["img"],
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : Container(
+                                  child: const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Text(_loadingList == false
+                            ? json[index]["title"]
+                            : "data"),
+                        Text(_loadingList == false
+                            ? json[index]["subtitle"]
+                            : "data"),
+                        subtext == true
+                            ? const Text("data") //Text(json[index]["subtext"])
+                            : Container()
+                      ],
+                    ),
+                  ),
+                ),
+              if (seeAll == true && index == count)
+                GestureDetector(
+                  onTap: () {
+                    //
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.only(top: 20, right: 20),
+                    width: 110,
+                    height: 110,
+                    child: Column(
+                      children: [
+                        Container(
+                            height: 45,
+                            width: 45,
+                            margin: const EdgeInsets.only(bottom: 10),
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Colors.grey.withOpacity(0.3),
+                                      offset: const Offset(1, 1),
+                                      blurRadius: 4,
+                                      spreadRadius: 1)
+                                ],
+                                borderRadius: BorderRadius.circular(45)),
+                            child: const Icon(
+                              Icons.arrow_right_alt,
+                              color: Colors.grey,
+                              size: 30,
+                            )),
+                        const Text("Xem tất cả",
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.grey))
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+        itemCount: count + 1,
+      ),
+    );
+    ;
   }
 }

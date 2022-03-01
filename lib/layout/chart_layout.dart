@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:clone_zingmp3/mics/colors.dart' as colors;
 
 class ChartLayout extends StatefulWidget {
   const ChartLayout({Key? key}) : super(key: key);
@@ -12,7 +13,8 @@ class _ChartLayoutState extends State<ChartLayout> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        child: Center(child: CircularProgressIndicator()),
+        color: colors.AppColors.appColor,
+        child: const Center(child: CircularProgressIndicator()),
       ),
     );
   }

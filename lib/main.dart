@@ -1,7 +1,5 @@
-import 'package:clone_zingmp3/layout/individual_layout.dart';
-import 'package:clone_zingmp3/layout/main_layout.dart';
-import 'package:clone_zingmp3/layout/page/individual_tab_playlist.dart';
-import 'package:clone_zingmp3/layout/page/splash_screen.dart';
+import 'package:clone_zingmp3/layout/page/discover_mucluc_event_page.dart';
+import 'package:clone_zingmp3/layout/page/splash_screen_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -19,7 +17,11 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      initialRoute: "/",
+      routes: {
+        "/": (context) => const MyHomePage(title: 'Flutter Demo Home Page'),
+        "/discove_event": (context) => const DiscoverPageEvent()
+      },
     );
   }
 }

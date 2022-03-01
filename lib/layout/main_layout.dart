@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:clone_zingmp3/API/playlistapi.dart';
 import 'package:clone_zingmp3/layout/chart_layout.dart';
@@ -12,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:clone_zingmp3/mics/colors.dart' as colors;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:async/async.dart';
+import 'page/music_playing_layout.dart';
 
 class HomeLayout extends StatefulWidget {
   const HomeLayout({Key? key}) : super(key: key);
@@ -21,38 +21,59 @@ class HomeLayout extends StatefulWidget {
 }
 
 class _HomeLayoutState extends State<HomeLayout> {
-  AudioPlayer audioPlayer = AudioPlayer();
-  AudioCache audioCache = AudioCache();
-  AsyncMemoizer _memoizer = AsyncMemoizer();
+  final AsyncMemoizer _memoizer = AsyncMemoizer();
+  AudioPlayer _audioPlayer = AudioPlayer();
+  AudioCache _audioCache = AudioCache();
+  PlayerState? _playerState;
   int _currentTabIndex = 1;
   List<PlaylistCurrentlyListening> _listDefaultMusic = [];
-  PlayerState? playerState;
+  bool loadDone = false;
+  int indexMusic = 0;
 
   final PlayListApi _listApi = PlayListApi();
   Future _loadPlayList() async {
     return _memoizer.runOnce(() {
       _listApi.getPlaylistFromLocal().then((value) {
-        _listDefaultMusic = value;
+        setState(() {
+          _listDefaultMusic = value;
+          loadDone = true;
+        });
       });
       return _listDefaultMusic;
     });
   }
 
   Future _playLocalFile(String path, PlayerState? state) async {
-    final result = await audioCache.play(path);
+    _audioPlayer.stop();
+    String url = "music/" + path;
+    await _audioCache.play(url);
 
     setState(() {
-      playerState = PlayerState.PLAYING;
-
-      print(playerState);
+      _playerState = PlayerState.PLAYING;
     });
   }
 
+// Hàm dừng nhạc
   Future _pauseMusic() async {
-    int result = await audioPlayer.pause();
-    setState(() => playerState = PlayerState.PAUSED);
-    print(playerState);
+    await _audioPlayer.pause();
+    setState(() => _playerState = PlayerState.PAUSED);
   }
+
+// Hàm hiện trang nghe nhạc
+  Future _showSheetMusicPlayingLayout(AudioCache audioCache,
+          AudioPlayer audioPlayer, PlayerState? playerState) =>
+      showModalBottomSheet(
+          isScrollControlled: true,
+          // enableDrag: false, // thuột tính cho phép đóng sheet bằng cách kéo trược
+          // isDismissible: false, // Thuột tính cho phép click ra ngoài sheet đê đóng
+          context: context,
+          builder: (context) => MusicPlayingLayout(
+                listDefaultMusic: _listDefaultMusic,
+                indexMusic: indexMusic,
+                audioCache: audioCache,
+                audioPlayer: audioPlayer,
+                playerState: playerState,
+              ));
 
   @override
   void initState() {
@@ -61,12 +82,12 @@ class _HomeLayoutState extends State<HomeLayout> {
       return;
     }
     if (Platform.isIOS) {
-      audioCache.fixedPlayer?.notificationService.startHeadlessService();
+      _audioCache.fixedPlayer?.notificationService.startHeadlessService();
     }
 
     setState(() {
-      audioPlayer = AudioPlayer();
-      audioCache = AudioCache(fixedPlayer: audioPlayer);
+      _audioPlayer = AudioPlayer();
+      _audioCache = AudioCache(fixedPlayer: _audioPlayer);
     });
   }
 
@@ -74,13 +95,15 @@ class _HomeLayoutState extends State<HomeLayout> {
   void dispose() {
     // TODO: implement dispose
     super.dispose();
-    audioPlayer.release();
-    audioPlayer.dispose();
-    audioCache.clearAll();
+    _audioPlayer.release();
+    _audioPlayer.dispose();
+    _audioCache.clearAll();
   }
 
   @override
   Widget build(BuildContext context) {
+    double mediaQueriHeight = MediaQuery.of(context).size.height;
+
     // Các layout trong tương ứng với các item bottombar
     final _kTabScreens = <Widget>[
       const IndividualLayout(),
@@ -94,7 +117,7 @@ class _HomeLayoutState extends State<HomeLayout> {
     final _kBottomNaviGationBarItems = <BottomNavigationBarItem>[
       const BottomNavigationBarItem(
         icon: Icon(
-          Icons.ac_unit,
+          Icons.music_note,
         ),
         title: Text(
           'Cá nhân',
@@ -103,7 +126,7 @@ class _HomeLayoutState extends State<HomeLayout> {
       ),
       const BottomNavigationBarItem(
         icon: Icon(
-          Icons.ac_unit,
+          Icons.radio_button_checked_outlined,
         ),
         title: Text(
           'Khám phá',
@@ -111,9 +134,7 @@ class _HomeLayoutState extends State<HomeLayout> {
         ),
       ),
       const BottomNavigationBarItem(
-        icon: Icon(
-          Icons.ac_unit,
-        ),
+        icon: Icon(Icons.stacked_line_chart_outlined),
         title: Text(
           '#Zingchart',
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
@@ -121,7 +142,7 @@ class _HomeLayoutState extends State<HomeLayout> {
       ),
       const BottomNavigationBarItem(
         icon: Icon(
-          Icons.ac_unit,
+          Icons.radar_outlined,
         ),
         title: Text(
           'Radio',
@@ -129,9 +150,7 @@ class _HomeLayoutState extends State<HomeLayout> {
         ),
       ),
       const BottomNavigationBarItem(
-        icon: Icon(
-          Icons.ac_unit,
-        ),
+        icon: Icon(Icons.backup_table),
         title: Text(
           'Theo dỏi',
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
@@ -158,6 +177,7 @@ class _HomeLayoutState extends State<HomeLayout> {
           },
         ));
 
+    _loadPlayList();
     return Scaffold(
       backgroundColor: Colors.white,
       extendBodyBehindAppBar: true,
@@ -169,140 +189,100 @@ class _HomeLayoutState extends State<HomeLayout> {
           ),
 
           // Phần hiển thị nhạc đang nghe
-          FutureBuilder(
-            future: _loadPlayList(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return Container(
-                  height: 58,
-                  color: colors.AppColors.searchBackground,
-                  child: Column(
-                    children: [
-                      Container(
-                        height: 5,
-                        color: colors.AppColors.appColor,
-                      ),
-                      const SizedBox(
-                        height: 5,
-                      ),
-                      Row(
-                        children: [
-                          Container(
-                              child: Container(
-                            height: 45,
-                            width: 45,
-                            margin: const EdgeInsets.only(left: 10),
-                            decoration: BoxDecoration(
-                                color: colors.AppColors.appColor,
-                                borderRadius: BorderRadius.circular(45)),
-                            child: CircleAvatar(
-                              backgroundImage: AssetImage(
-                                "assets/images/thumbnails/" +
-                                    _listDefaultMusic[1].thumbnails.toString(),
-                              ),
+          Container(
+            height: 58,
+            color: colors.AppColors.searchBackground,
+            child: Column(
+              children: [
+                Container(
+                  height: 5,
+                  color: colors.AppColors.appColor,
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                        child: GestureDetector(
+                      onTap: () {
+                        _showSheetMusicPlayingLayout(
+                            _audioCache, _audioPlayer, _playerState);
+                      },
+                      child: Container(
+                        color: Colors.white.withOpacity(0),
+                        width: double.infinity,
+                        child: Row(
+                          children: [
+                            Container(
+                              height: 45,
+                              width: 45,
+                              margin: const EdgeInsets.only(left: 10),
+                              decoration: BoxDecoration(
+                                  color: colors.AppColors.appColor,
+                                  borderRadius: BorderRadius.circular(45)),
+                              child: loadDone == true
+                                  ? CircleAvatar(
+                                      backgroundImage: AssetImage(
+                                        "assets/images/thumbnails/" +
+                                            _listDefaultMusic[1]
+                                                .thumbnails
+                                                .toString(),
+                                      ),
+                                    )
+                                  : Container(),
                             ),
-                          )),
-                          Expanded(
-                              child: Container(
-                                  padding: const EdgeInsets.only(left: 10),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(_listDefaultMusic[1]
-                                          .title
-                                          .toString()),
-                                      Text(_listDefaultMusic[1]
-                                          .author
-                                          .toString())
-                                    ],
-                                  ))),
-                          const Icon(Icons.favorite_border),
-                          IconButton(
-                            icon: Icon(playerState == PlayerState.PLAYING
-                                ? Icons.pause
-                                : Icons.play_arrow),
-                            onPressed: () {
-                              playerState == PlayerState.PLAYING
-                                  ? _pauseMusic()
-                                  : _playLocalFile(
-                                      "music/" +
-                                          _listDefaultMusic[1].url.toString(),
-                                      playerState);
-                            },
-                          ),
-                          const Icon(
-                            Icons.skip_next_rounded,
-                            size: 26,
-                          ),
-                          const SizedBox(
-                            width: 5,
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-                );
-              }
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Container(
-                  height: 58,
-                  color: colors.AppColors.searchBackground,
-                  child: Column(
-                    children: [
-                      Container(
-                        height: 5,
-                        color: colors.AppColors.appColor,
+                            Row(
+                              children: [
+                                loadDone == true
+                                    ? Container(
+                                        padding:
+                                            const EdgeInsets.only(left: 10),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(_listDefaultMusic[1]
+                                                .title
+                                                .toString()),
+                                            Text(_listDefaultMusic[1]
+                                                .author
+                                                .toString())
+                                          ],
+                                        ))
+                                    : Container()
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(
-                        height: 5,
+                    )),
+                    const Icon(Icons.favorite_border),
+                    IconButton(
+                      icon: Icon(
+                        _playerState == PlayerState.PLAYING
+                            ? Icons.pause
+                            : Icons.play_arrow,
                       ),
-                      Row(
-                        children: [
-                          Container(
-                              child: Container(
-                            height: 45,
-                            width: 45,
-                            margin: const EdgeInsets.only(left: 10),
-                            decoration: BoxDecoration(
-                                color: colors.AppColors.appColor,
-                                borderRadius: BorderRadius.circular(45)),
-                            child: const CircularProgressIndicator.adaptive(),
-                          )),
-                          Expanded(
-                              child: Container(
-                                  padding: const EdgeInsets.only(left: 10),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: const [
-                                      Text("Loading..."),
-                                      Text("Loading..."),
-                                    ],
-                                  ))),
-                          const Icon(Icons.favorite_border),
-                          IconButton(
-                            icon: Icon(playerState == PlayerState.PLAYING
-                                ? Icons.pause
-                                : Icons.play_arrow),
-                            onPressed: () {},
-                          ),
-                          const Icon(
-                            Icons.skip_next_rounded,
-                            size: 26,
-                          ),
-                          const SizedBox(
-                            width: 5,
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-                );
-              } else {
-                return Container();
-              }
-            },
+                      onPressed: () {
+                        _playerState == PlayerState.PLAYING
+                            ? _pauseMusic()
+                            : _playLocalFile(
+                                _listDefaultMusic[indexMusic].url.toString(),
+                                _playerState);
+                      },
+                    ),
+                    const Icon(
+                      Icons.skip_next_rounded,
+                      size: 30,
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                  ],
+                )
+              ],
+            ),
           )
         ],
       ),
@@ -311,4 +291,24 @@ class _HomeLayoutState extends State<HomeLayout> {
       bottomNavigationBar: _bottomNavBar,
     );
   }
+}
+
+class SizeTransition1 extends PageRouteBuilder {
+  final Widget page;
+  SizeTransition1(this.page)
+      : super(
+          pageBuilder: (context, animation, anotherAnimation) => page,
+          transitionDuration: const Duration(milliseconds: 1000),
+          reverseTransitionDuration: const Duration(milliseconds: 200),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            animation = CurvedAnimation(
+                parent: animation,
+                curve: Curves.fastLinearToSlowEaseIn,
+                reverseCurve: Curves.fastOutSlowIn);
+            return Align(
+                alignment: Alignment.bottomCenter,
+                child: SizeTransition(
+                    sizeFactor: animation, child: page, axisAlignment: 0));
+          },
+        );
 }

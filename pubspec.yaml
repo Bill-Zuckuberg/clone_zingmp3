@@ -36,6 +36,8 @@ dependencies:
   measure_size: ^2.0.0
   audioplayers: ^0.20.1 
   async: ^2.8.2
+  sliding_sheet: ^0.5.2
+  expandable_page_view: ^1.0.10
   
 dev_dependencies:
   flutter_test:
@@ -64,6 +66,7 @@ flutter:
     - assets/
     - assets/images/ 
     - assets/images/thumbnails/
+    - assets/images/muc_luc/
     - assets/images/music.png
     - assets/images/avt.jpg
     - assets/images/carousel/

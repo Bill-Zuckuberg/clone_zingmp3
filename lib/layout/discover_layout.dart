@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:clone_zingmp3/mics/colors.dart' as colors;
-import 'package:flutter/services.dart';
+
+import 'chart_layout.dart';
 
 class DiscoverLayout extends StatefulWidget {
   const DiscoverLayout({Key? key}) : super(key: key);
@@ -19,6 +19,16 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
   List _listTop100 = [];
   bool _loadingCaroulsel = true;
   bool _loadingList = true;
+  final _mucLuc = [
+    {"img": "1.jpg", "title": "Nhạc Mới", "route": "/discove_event"},
+    {"img": "2.jpg", "title": "Thể Loại", "route": "/discove_event"},
+    {"img": "3.jpg", "title": "Top 100", "route": "/discove_event"},
+    {"img": "4.jpg", "title": "VIP", "route": "/discove_event"},
+    {"img": "5.jpg", "title": "Karaoke", "route": "/discove_event"},
+    {"img": "6.jpg", "title": "Top MV", "route": "/discove_event"},
+    {"img": "7.jpg", "title": "Sự Kiện", "route": "/discove_event"}
+  ];
+  final _ganday = [{}];
 
   _loadingJson() async {
     DefaultAssetBundle.of(context)
@@ -234,21 +244,31 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index) {
-                  return Container(
-                    height: 75,
-                    width: 75,
-                    child: Column(
-                      children: [
-                        Container(
-                            height: 40,
-                            width: 40,
-                            decoration: BoxDecoration(
-                                color: Colors.red.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(12)),
-                            margin: const EdgeInsets.only(bottom: 5),
-                            child: Icon(Icons.music_note_outlined)),
-                        Text("data")
-                      ],
+                  return InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(
+                          context, _mucLuc[index]["route"].toString());
+                    },
+                    child: Container(
+                      height: 75,
+                      width: 75,
+                      child: Column(
+                        children: [
+                          Container(
+                              margin: const EdgeInsets.only(bottom: 5),
+                              height: 40,
+                              width: 40,
+                              decoration: BoxDecoration(
+                                  color: Colors.red.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  image: DecorationImage(
+                                      image: AssetImage(
+                                          "assets/images/muc_luc/" +
+                                              _mucLuc[index]["img"]
+                                                  .toString())))),
+                          Text(_mucLuc[index]["title"].toString())
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -304,12 +324,16 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                                               color:
                                                   Colors.red.withOpacity(0.2),
                                               borderRadius:
-                                                  BorderRadius.circular(5)),
+                                                  BorderRadius.circular(5),
+                                              image: const DecorationImage(
+                                                  fit: BoxFit.cover,
+                                                  image: NetworkImage(
+                                                      "https://photo-cms-baophapluat.zadn.vn/w800/Uploaded/2022/ycgvptcc/2019_07_26/b_jpg_GIDP.jpg"))),
                                         ),
                                         const SizedBox(
                                           height: 15,
                                         ),
-                                        Text("data")
+                                        Text("title")
                                       ],
                                     ),
                                   ),
@@ -333,7 +357,11 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                                               color:
                                                   Colors.red.withOpacity(0.2),
                                               borderRadius:
-                                                  BorderRadius.circular(85)),
+                                                  BorderRadius.circular(85),
+                                              image: const DecorationImage(
+                                                  fit: BoxFit.cover,
+                                                  image: NetworkImage(
+                                                      "https://avatar-ex-swe.nixcdn.com/topic/share/2020/11/05/c/8/6/1/1604568785929.jpg"))),
                                         ),
                                         const SizedBox(
                                           height: 15,
@@ -398,16 +426,16 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
           ),
 
           //  Phần QC
-          SliverToBoxAdapter(
-            child: Container(
-              margin: const EdgeInsets.only(
-                  top: 20, right: 10, bottom: 20, left: 10),
-              height: 120,
-              width: MediaQuery.of(context).size.width,
-              decoration: BoxDecoration(
-                  color: Colors.purple, borderRadius: BorderRadius.circular(5)),
-            ),
-          ),
+          // SliverToBoxAdapter(
+          //   child: Container(
+          //     margin: const EdgeInsets.only(
+          //         top: 20, right: 10, bottom: 20, left: 10),
+          //     height: 120,
+          //     width: MediaQuery.of(context).size.width,
+          //     decoration: BoxDecoration(
+          //         color: Colors.purple, borderRadius: BorderRadius.circular(5)),
+          //   ),
+          // ),
 
           // Phần có thể muốn nghe
           SliverToBoxAdapter(
@@ -533,6 +561,10 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                                               height: 140,
                                               width: 140,
                                               decoration: BoxDecoration(
+                                                  image: const DecorationImage(
+                                                      fit: BoxFit.cover,
+                                                      image: NetworkImage(
+                                                          "https://photo-cms-baophapluat.zadn.vn/w800/Uploaded/2022/ycgvptcc/2019_07_26/b_jpg_GIDP.jpg")),
                                                   color: Colors.red
                                                       .withOpacity(0.2),
                                                   borderRadius:
@@ -546,14 +578,19 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                                                   height: 40,
                                                   width: 40,
                                                   decoration: BoxDecoration(
-                                                      border: Border.all(
-                                                          color: Colors.white,
-                                                          width: 2),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              35),
-                                                      color: Colors.yellow
-                                                          .withOpacity(0.8)),
+                                                    border: Border.all(
+                                                        color: Colors.white,
+                                                        width: 2),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            35),
+                                                    color: Colors.yellow
+                                                        .withOpacity(0.8),
+                                                    image: const DecorationImage(
+                                                        fit: BoxFit.cover,
+                                                        image: NetworkImage(
+                                                            "https://suckhoedoisong.qltns.mediacdn.vn/Images/nguyenkhanh/2018/02/08/vpop.jpg")),
+                                                  ),
                                                 ))
                                           ],
                                         ),
@@ -679,11 +716,11 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
             child: Container(
               height: 550,
               width: double.infinity,
-              padding: const EdgeInsets.only(left: 10, right: 10),
+              margin: const EdgeInsets.only(left: 10, right: 10),
               decoration: BoxDecoration(
                   color: colors.AppColors.appColor,
                   borderRadius: BorderRadius.circular(8)),
-              child: Column(),
+              child: const ChartLayout(),
             ),
           ),
 
@@ -756,10 +793,16 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                                           height: 140,
                                           width: 260,
                                           decoration: BoxDecoration(
-                                              color:
-                                                  Colors.red.withOpacity(0.2),
-                                              borderRadius:
-                                                  BorderRadius.circular(5)),
+                                            color: Colors.red.withOpacity(0.2),
+                                            borderRadius:
+                                                BorderRadius.circular(5),
+                                          ),
+                                          child: _loadingList == false
+                                              ? Image.network(
+                                                  _listTop100[index]["img"],
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : Container(),
                                         ),
                                         const SizedBox(
                                           height: 10,
@@ -771,10 +814,19 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Column(children: const [
-                                                Text("data"),
-                                                Text("data"),
-                                              ]),
+                                              Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(_loadingList == false
+                                                        ? _listTop100[index]
+                                                            ["title"]
+                                                        : "loading..."),
+                                                    Text(_loadingList == false
+                                                        ? _listTop100[index]
+                                                            ["subtitle"]
+                                                        : "loading..."),
+                                                  ]),
                                               Container(
                                                 child: const Text("Quan tâm"),
                                               )
@@ -848,11 +900,18 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                   children: [
                     Row(children: [
                       Container(
-                          height: 40,
-                          width: 40,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(5),
-                              color: Colors.red.withOpacity(0.2))),
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5),
+                            color: Colors.red.withOpacity(0.2)),
+                        child: _loadingList == false
+                            ? Image.network(
+                                _listTop100[7]["img"].toString(),
+                                fit: BoxFit.cover,
+                              )
+                            : Container(),
+                      ),
                       const SizedBox(
                         width: 5,
                       ),
@@ -890,7 +949,13 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                           width: 40,
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(5),
-                              color: Colors.red.withOpacity(0.2))),
+                              color: Colors.red.withOpacity(0.2)),
+                          child: _loadingList == false
+                              ? Image.network(
+                                  _listTop100[7]["img"].toString(),
+                                  fit: BoxFit.cover,
+                                )
+                              : Container()),
                       const SizedBox(
                         width: 5,
                       ),
@@ -976,6 +1041,12 @@ class _DiscoverLayoutState extends State<DiscoverLayout> {
                                   decoration: BoxDecoration(
                                       color: Colors.red.withOpacity(0.2),
                                       borderRadius: BorderRadius.circular(5)),
+                                  child: _loadingList == false
+                                      ? Image.network(
+                                          _listTop100[index]["img"].toString(),
+                                          fit: BoxFit.fill,
+                                        )
+                                      : Container(),
                                 ),
                               ),
                             );

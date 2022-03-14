@@ -27,23 +27,21 @@ class MusicPlayingLayout extends StatefulWidget {
 }
 
 class _MusicPlayingLayoutState extends State<MusicPlayingLayout>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   int pageChanged = 0;
   int _indexMusic = 0;
   bool isPlaying = true;
-  Duration totalDuratio = Duration();
-  Duration position = Duration();
+  bool _isDisposed = false;
+  Duration totalDuratio = const Duration();
+  Duration position = const Duration();
   List<PlaylistCurrentlyListening>? _listDefaultMusic;
-  late final AnimationController _animationController = AnimationController(
-    duration: const Duration(seconds: 30),
-    vsync: this,
-  )..repeat();
+  late final AnimationController _animationController;
 
-  Future _playLocalFile(String path, PlayerState? state) async {
+  Future _playLocalFile(String path) async {
     String url = "music/" + path;
     widget.audioPlayer.stop();
+    _animationController.repeat();
     await widget.audioCache.play(url);
-    _animationController.forward();
     setState(() {
       widget.playerState = PlayerState.PLAYING;
     });
@@ -58,10 +56,6 @@ class _MusicPlayingLayoutState extends State<MusicPlayingLayout>
     });
   }
 
-  format(Duration? d) {
-    return d.toString().substring(2, 7);
-  }
-
   String _printDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, "0");
     String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
@@ -73,8 +67,27 @@ class _MusicPlayingLayoutState extends State<MusicPlayingLayout>
   void initState() {
     // TODO: implement initState
     super.initState();
+
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 30),
+      vsync: this,
+    )..repeat().orCancel;
+
     _listDefaultMusic = widget.listDefaultMusic;
     _indexMusic = widget.indexMusic;
+
+    // if (_isDisposed == true) {
+    // widget.audioPlayer.onDurationChanged.listen((updateTotaDuration) {
+    //   setState(() {
+    //     totalDuratio = updateTotaDuration;
+    //   });
+    // });
+    // widget.audioPlayer.onAudioPositionChanged.listen((updatePosition) {
+    //   setState(() {
+    //     position = updatePosition;
+    //   });
+    // });
+    // }
   }
 
   @override
@@ -82,6 +95,9 @@ class _MusicPlayingLayoutState extends State<MusicPlayingLayout>
     // TODO: implement dispose
     super.dispose();
     _animationController.dispose();
+
+    widget.audioPlayer.dispose();
+    widget.audioCache.clearAll();
   }
 
   @override
@@ -146,18 +162,6 @@ class _MusicPlayingLayoutState extends State<MusicPlayingLayout>
       )
     ];
 
-    setState(() {
-      widget.audioPlayer.onDurationChanged.listen((updateTotaDuration) {
-        totalDuratio = updateTotaDuration;
-      });
-    });
-
-    widget.audioPlayer.onAudioPositionChanged.listen((updatePosition) {
-      setState(() {
-        position = updatePosition;
-      });
-    });
-
     return Scaffold(
       body: DraggableScrollableSheet(
           expand: false,
@@ -187,6 +191,7 @@ class _MusicPlayingLayoutState extends State<MusicPlayingLayout>
                           children: [
                             IconButton(
                                 onPressed: () => setState(() {
+                                      // _animationController.stop();
                                       Navigator.pop(context);
                                     }),
                                 icon:
@@ -255,9 +260,6 @@ class _MusicPlayingLayoutState extends State<MusicPlayingLayout>
                                   ),
                                   child: Center(
                                       child: Text(
-                                          // format(position).toString() +
-                                          //     "/" +
-                                          //     format(totalDuratio).toString(),
                                           _printDuration(position) +
                                               "/" +
                                               _printDuration(totalDuratio),
@@ -290,8 +292,7 @@ class _MusicPlayingLayoutState extends State<MusicPlayingLayout>
                                         _playLocalFile(
                                             _listDefaultMusic![_indexMusic]
                                                 .url
-                                                .toString(),
-                                            widget.playerState);
+                                                .toString());
                                       });
                                     } else {
                                       setState(() {
@@ -300,8 +301,7 @@ class _MusicPlayingLayoutState extends State<MusicPlayingLayout>
                                         _playLocalFile(
                                             _listDefaultMusic![_indexMusic]
                                                 .url
-                                                .toString(),
-                                            widget.playerState);
+                                                .toString());
                                       });
                                     }
                                   },
@@ -316,8 +316,7 @@ class _MusicPlayingLayoutState extends State<MusicPlayingLayout>
                                         ? _playLocalFile(
                                             _listDefaultMusic![_indexMusic]
                                                 .url
-                                                .toString(),
-                                            widget.playerState)
+                                                .toString())
                                         : _pauseMusic();
                                   },
                                   icon: Icon(
@@ -335,8 +334,7 @@ class _MusicPlayingLayoutState extends State<MusicPlayingLayout>
                                         _playLocalFile(
                                             _listDefaultMusic![_indexMusic]
                                                 .url
-                                                .toString(),
-                                            widget.playerState);
+                                                .toString());
                                       });
                                     } else {
                                       setState(() {
@@ -344,8 +342,7 @@ class _MusicPlayingLayoutState extends State<MusicPlayingLayout>
                                         _playLocalFile(
                                             _listDefaultMusic![_indexMusic]
                                                 .url
-                                                .toString(),
-                                            widget.playerState);
+                                                .toString());
                                       });
                                     }
                                   },

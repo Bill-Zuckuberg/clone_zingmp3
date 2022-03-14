@@ -40,16 +40,17 @@ dependencies:
   expandable_page_view: ^1.0.10 
   flutter_launcher_icons: ^0.9.2
   
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/zingmp3.png"
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
  
 
 
-flutter_icons:
-  android: true
-  ios: true
-  image_path: "assets/images/zingmp3.png"
 
 
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -79,7 +80,7 @@ flutter:
     - assets/images/music.png
     - assets/images/avt.jpg
     - assets/images/carousel/
-    - assets/music/
+    - assets/music/ 
     - json/
 
 

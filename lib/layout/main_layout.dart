@@ -20,10 +20,11 @@ class HomeLayout extends StatefulWidget {
   _HomeLayoutState createState() => _HomeLayoutState();
 }
 
-class _HomeLayoutState extends State<HomeLayout> {
+class _HomeLayoutState extends State<HomeLayout> with TickerProviderStateMixin {
   final AsyncMemoizer _memoizer = AsyncMemoizer();
   AudioPlayer _audioPlayer = AudioPlayer();
   AudioCache _audioCache = AudioCache();
+  late AnimationController transitionAnimationController;
   PlayerState? _playerState;
   int _currentTabIndex = 1;
   List<PlaylistCurrentlyListening> _listDefaultMusic = [];
@@ -55,6 +56,7 @@ class _HomeLayoutState extends State<HomeLayout> {
 
 // Hàm dừng nhạc
   Future _pauseMusic() async {
+    _audioPlayer.stop();
     await _audioPlayer.pause();
     setState(() => _playerState = PlayerState.PAUSED);
   }
@@ -63,6 +65,7 @@ class _HomeLayoutState extends State<HomeLayout> {
   Future _showSheetMusicPlayingLayout(AudioCache audioCache,
           AudioPlayer audioPlayer, PlayerState? playerState) =>
       showModalBottomSheet(
+          transitionAnimationController: transitionAnimationController,
           isScrollControlled: true,
           // enableDrag: false, // thuột tính cho phép đóng sheet bằng cách kéo trược
           // isDismissible: false, // Thuột tính cho phép click ra ngoài sheet đê đóng
@@ -84,18 +87,16 @@ class _HomeLayoutState extends State<HomeLayout> {
     if (Platform.isIOS) {
       _audioCache.fixedPlayer?.notificationService.startHeadlessService();
     }
-
-    setState(() {
-      _audioPlayer = AudioPlayer();
-      _audioCache = AudioCache(fixedPlayer: _audioPlayer);
-    });
+    transitionAnimationController = BottomSheet.createAnimationController(this);
+    _audioPlayer = AudioPlayer();
+    _audioCache = AudioCache(fixedPlayer: _audioPlayer);
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
     super.dispose();
-    _audioPlayer.release();
+    transitionAnimationController.dispose();
     _audioPlayer.dispose();
     _audioCache.clearAll();
   }
@@ -119,42 +120,27 @@ class _HomeLayoutState extends State<HomeLayout> {
         icon: Icon(
           Icons.music_note,
         ),
-        title: Text(
-          'Cá nhân',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        ),
+        label: 'Cá nhân',
       ),
       const BottomNavigationBarItem(
         icon: Icon(
           Icons.radio_button_checked_outlined,
         ),
-        title: Text(
-          'Khám phá',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        ),
+        label: 'Khám phá',
       ),
       const BottomNavigationBarItem(
         icon: Icon(Icons.stacked_line_chart_outlined),
-        title: Text(
-          '#Zingchart',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        ),
+        label: '#Zingchart',
       ),
       const BottomNavigationBarItem(
         icon: Icon(
           Icons.radar_outlined,
         ),
-        title: Text(
-          'Radio',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        ),
+        label: 'Radio',
       ),
       const BottomNavigationBarItem(
         icon: Icon(Icons.backup_table),
-        title: Text(
-          'Theo dỏi',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        ),
+        label: 'Theo dỏi',
       ),
     ];
 
@@ -225,7 +211,7 @@ class _HomeLayoutState extends State<HomeLayout> {
                                   ? CircleAvatar(
                                       backgroundImage: AssetImage(
                                         "assets/images/thumbnails/" +
-                                            _listDefaultMusic[1]
+                                            _listDefaultMusic[indexMusic]
                                                 .thumbnails
                                                 .toString(),
                                       ),
@@ -242,10 +228,10 @@ class _HomeLayoutState extends State<HomeLayout> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(_listDefaultMusic[1]
+                                            Text(_listDefaultMusic[indexMusic]
                                                 .title
                                                 .toString()),
-                                            Text(_listDefaultMusic[1]
+                                            Text(_listDefaultMusic[indexMusic]
                                                 .author
                                                 .toString())
                                           ],
